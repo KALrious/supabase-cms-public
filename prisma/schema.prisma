@@ -1,0 +1,102 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// Modèle user with profile picture
+model User {
+  id          String   @id @default(cuid())
+  email       String   @unique
+  first_name  String
+  last_name   String
+  posts       Post[]    @relation("PostAuthor")
+  role        Role      @default(USER)
+  profile_image_url     String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum ContentType {
+  MARKDOWN
+  HTML
+  PLAIN_TEXT
+}
+
+// Modèle for posts and articles
+model Post {
+  id          String      @id @default(cuid())
+  title       String
+  slug        String      @unique
+  content     String      @db.Text
+  contentType ContentType @default(MARKDOWN)
+  excerpt     String?     @db.Text
+  published   Boolean     @default(false)
+  featured    Boolean     @default(false)
+  authorId    String
+  author      User        @relation("PostAuthor", fields: [authorId], references: [id])
+  categories  Category[]
+  tags        Tag[]
+  coverImage  Media?      @relation("PostCover", fields: [coverImageId], references: [id])
+  coverImageId String?
+  mediaGallery Media[]    @relation("PostGallery")
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  metadata    PostMeta?
+}
+
+// Modèle for media files
+model Media {
+  id          String   @id @default(cuid())
+  fileName    String
+  fileUrl     String
+  fileType    String
+  fileSize    Int
+  alt         String?
+  caption     String?
+  ownerId     String
+  coverForPosts Post[] @relation("PostCover")
+  inGalleryPosts Post[] @relation("PostGallery")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Metada and Seo for posts
+model PostMeta {
+  id          String   @id @default(cuid())
+  postId      String   @unique
+  post        Post     @relation(fields: [postId], references: [id])
+  metaTitle   String?
+  metaDesc    String?  @db.Text
+  ogImage     String?
+  canonical   String?
+}
+
+// Model for categories
+model Category {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  description String?  @db.Text
+  posts       Post[]
+  parentId    String?
+  parent      Category? @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+}
+
+// Model for tags
+model Tag {
+  id          String   @id @default(cuid())
+  name        String   @unique
+  slug        String   @unique
+  posts       Post[]
+}
