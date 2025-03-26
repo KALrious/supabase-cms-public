@@ -38,3 +38,7 @@ Supabase CMS is a lightweight and efficient Content Management System (CMS) buil
 
 ## Contributing  
 Contributions are welcome! Feel free to open issues or submit pull requests.
+
+## Created by
+[Tech-Craft](https://www.tech-craft.fr/)  
+
